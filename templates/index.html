@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>実験台管理アプリ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+    <h1>実験台管理ダッシュボード</h1>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <p class="summary-label">使用中</p>
+            <p class="summary-value">{{ summary["using_count"] }}</p>
+        </div>
+        <div class="summary-card">
+            <p class="summary-label">空き台数</p>
+            <p class="summary-value">{{ summary["free_count"] }}</p>
+        </div>
+        <div class="summary-card">
+            <p class="summary-label">履歴件数</p>
+            <p class="summary-value">{{ summary["total_usage_count"] }}</p>
+        </div>
+        <div class="summary-card">
+            <p class="summary-label">平均利用時間</p>
+            <p class="summary-value">{{ summary["avg_minutes"] }}分</p>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>実験台状況</h2>
+            <ul class="list-reset">
+                {% for desk in desks %}
+                    <li class="desk {% if desk['user_name'] %}used{% else %}free{% endif %}">
+                        <div>
+                            実験台 {{ desk["id"] }}
+                            {% if desk["user_name"] %}
+                                <span class="badge badge-used">使用中</span>
+                                （{{ desk["user_name"] }}）
+                            {% else %}
+                                <span class="badge badge-free">空き</span>
+                            {% endif %}
+                        </div>
+
+                        {% if desk["user_name"] %}
+                        <form action="/release" method="post">
+                            <input type="hidden" name="desk" value="{{ desk['id'] }}">
+                            <button type="submit">終了</button>
+                        </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>使用開始</h2>
+            <form action="/use" method="post" class="form-row">
+                <input type="text" name="name" placeholder="名前" required>
+
+                <select name="desk">
+                    {% for desk in desks %}
+                        {% if desk["user_name"] %}
+                            <option disabled>
+                                {{ desk["id"] }}（使用中）
+                            </option>
+                        {% else %}
+                            <option value="{{ desk['id'] }}">
+                                {{ desk["id"] }}（空き）
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+
+                <button type="submit">開始</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>使用履歴</h2>
+            <ul class="list-reset">
+                {% for h in history %}
+                    <li class="history-item">
+                        {{ h["user_name"] }} / 台{{ h["desk_id"] }} /
+                        開始 {{ h["start_time"] }} /
+                        終了 {{ h["end_time"] if h["end_time"] else "使用中" }} /
+                        利用時間 {{ h["duration"] }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>混雑予想</h2>
+        <div class="analysis-grid">
+            {% for a in analysis %}
+                <div class="analysis-card {{ 'busy' if a.level == '混雑' else 'medium' }}">
+                    <div class="analysis-day">
+                        {{ a.day }}曜
+                    </div>
+
+                    <div class="analysis-time">
+                        {{ a.start_hour }}時〜{{ a.end_hour }}時
+                    </div>
+
+                    <div class="analysis-level">
+                        {{ a.level }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
