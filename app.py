@@ -1,10 +1,6 @@
-from seed.dummy_data import dummy_data
-from database import insert_dummy_data
-
-insert_dummy_data(dummy_data)
-
 from flask import Flask, render_template, request, redirect
-from database import init_db
+from database import init_db, insert_dummy_data_if_empty
+from seed.dummy_data import dummy_data
 from services.desk_service import (
     get_dashboard_data,
     start_using_desk,
@@ -13,6 +9,7 @@ from services.desk_service import (
 
 app = Flask(__name__)
 init_db()
+insert_dummy_data_if_empty(dummy_data)
 
 
 @app.route("/")

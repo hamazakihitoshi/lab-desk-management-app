@@ -1,14 +1,11 @@
+import os
 import sqlite3
 
-def insert_dummy_data(dummy_data):
-    with get_db() as conn:
-        for user_name, desk_id, start_time, end_time in dummy_data:
-            conn.execute("""
-                INSERT INTO history (user_name, desk_id, start_time, end_time)
-                VALUES (?, ?, ?, ?)
-            """, (user_name, desk_id, start_time, end_time))
+DB_PATH = os.environ.get("DB_PATH", "lab.db")
+
+
 def get_db():
-    conn = sqlite3.connect("lab.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -37,3 +34,26 @@ def init_db():
                 "INSERT OR IGNORE INTO desks (id, user_name) VALUES (?, NULL)",
                 (i,)
             )
+
+
+def insert_dummy_data(dummy_data):
+    with get_db() as conn:
+        for user_name, desk_id, start_time, end_time in dummy_data:
+            conn.execute("""
+                INSERT INTO history (user_name, desk_id, start_time, end_time)
+                VALUES (?, ?, ?, ?)
+            """, (user_name, desk_id, start_time, end_time))
+
+
+def insert_dummy_data_if_empty(dummy_data):
+    with get_db() as conn:
+        row = conn.execute("SELECT COUNT(*) AS cnt FROM history").fetchone()
+
+        if row["cnt"] > 0:
+            return
+
+        for user_name, desk_id, start_time, end_time in dummy_data:
+            conn.execute("""
+                INSERT INTO history (user_name, desk_id, start_time, end_time)
+                VALUES (?, ?, ?, ?)
+            """, (user_name, desk_id, start_time, end_time))
